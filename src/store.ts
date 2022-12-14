@@ -1,9 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit'
 import uiReducer from './slices/uiSlice'
+import visualizerReducer from './slices/visualizerSlice'
 
 export const store = configureStore({
     reducer: {
-        ui: uiReducer
+        ui: uiReducer,
+        visualizer: visualizerReducer
     }
 })
 
