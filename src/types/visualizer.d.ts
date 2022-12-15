@@ -1,3 +1,4 @@
-type Cell = {
-    state: "empty" | "block" | "start" | "finish"
+type CellData = {
+    id: string
+    state: "empty" | "block" | "start" | "finish" | "path"
 }

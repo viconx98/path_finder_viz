@@ -1,13 +1,22 @@
+import { nanoid } from "@reduxjs/toolkit";
+
 export function getRandomIntInclusive(min: number, max: number) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
 }
 
-export function generateMaze(mazeWidth: number, mazeHeight: number, blockChance: number = 25, defaultStart: boolean = true, defaultFinish: boolean = true) {
+export function generateMaze(
+    mazeWidth: number,
+    mazeHeight: number,
+    blockChance: number = 25,
+    defaultStart: boolean = true,
+    defaultFinish: boolean = true): [CellData[][], [number, number], [number, number]] {
+
     const maze = new Array(mazeWidth).fill(null).map(e => {
         return new Array(mazeHeight).fill(null).map(e1 => {
-            const cell: Cell = {
+            const cell: CellData = {
+                id: nanoid(16),
                 state: "empty"
             }
 
@@ -31,5 +40,33 @@ export function generateMaze(mazeWidth: number, mazeHeight: number, blockChance:
 
     maze[finishRowIdx][finishColIdx].state = "finish"
 
-    return maze
+    return [maze, [startRowIdx, startColIdx], [finishRowIdx, finishColIdx]]
 }
+
+export function generateVisitedMaze(mazeWidth: number, mazeHeight: number) {
+    const visitedMaze = new Array(mazeWidth).fill(null).map(e => {
+        return new Array(mazeHeight).fill(false)
+    })
+
+    return visitedMaze as boolean[][]
+}
+
+// TODO: Better row id scheme
+export function createRowId(cells: CellData[]) {
+    return cells.map(cell => cell.id.substring(0, 4)).join("")
+}
+
+// TODO: Maybe also check visited here for clarity
+export function isValidCell(mazeWidth: number, mazeHeight: number, cellRowIdx: number, cellColIdx: number) {
+    if (cellRowIdx < 0 || cellRowIdx >= mazeWidth) return false
+    if (cellColIdx < 0 || cellColIdx >= mazeHeight) return false
+
+    return true
+}
+
+export const OFFSETS = [
+    [-1, 0], // Up
+    [0, 1], // Right
+    [1, 0], // Down
+    [0, -1] // Right
+]
