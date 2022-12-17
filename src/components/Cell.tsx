@@ -7,9 +7,10 @@ type CellProps = {
     cellRowIdx: number
     cellColIdx: number
     isVisited?: boolean
+    isPath?: boolean
 }
 
-const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false }: CellProps) => {
+const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false }: CellProps) => {
     const dispatch = useAppDispatch()
 
     const handleCellClick = () => {
@@ -25,7 +26,8 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false }: CellProps) =>
             cell.state === "block" ? "bg-zinc-500 shadow-[0px_6px_4px_0_#27272a]" : "",
             cell.state === "finish" ? "bg-green-500" : "",
             cell.state === "start" ? "bg-yellow-500" : "",
-            isVisited && cell.state !== "start" && cell.state !== "finish" ? "bg-orange-500/50" : ""
+            isVisited && cell.state !== "start" && cell.state !== "finish" ? "bg-orange-500/50" : "",
+            isPath && cell.state !== "start" && cell.state !== "finish" ? "bg-green-500/70" : ""
         )}>
     </div>
 }

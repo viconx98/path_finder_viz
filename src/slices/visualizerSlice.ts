@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { generateMaze, generateVisitedMaze, isValidCell, OFFSETS } from '../utils'
+import { generateMaze, generateVisitedMaze, isValidCell, OFFSETS_SIMPLE } from '../utils'
 
 interface VisualizerState {
     mazeWidth: number
@@ -14,7 +14,8 @@ interface VisualizerState {
 
     isInitializationComplete: boolean
 
-    queue: Array<[number, number]>
+    array: [number, number, [number, number][]][]
+    validPath: [number, number][]
     algorithmStatus: "stopped" | "running" | "completed"
 }
 
@@ -31,7 +32,8 @@ const initialState: VisualizerState = {
 
     isInitializationComplete: false,
 
-    queue: [],
+    array: [],
+    validPath: [],
     algorithmStatus: "stopped"
 }
 
@@ -68,21 +70,39 @@ export const visualizerSlice = createSlice({
             state.visitedMaze[cellRowIdx][cellColIdx] = true
         },
         setupAlgorithmLoop(state, action: PayloadAction<void>) {
-            state.queue.push([state.startRowIdx, state.startColIdx])
+            state.array.push([state.startRowIdx, state.startColIdx, [[state.startRowIdx, state.startColIdx]]])
             state.visitedMaze[state.startRowIdx][state.startColIdx] = true
+
+            state.algorithmStatus = "running"
         },
         runAlgorithmLoop(state, action: PayloadAction<void>) {
-            // TODO: undefined check
-            const [currentRow, currentCol] = state.queue.shift()!
+            // Guard statement to prevent redundant actions from setInterval
+            // TODO: Refactor so this statement is not required
+            if (state.algorithmStatus === "completed") {
+                return
+            }
+            
+            const currentCell = state.array.shift()
 
-            state.visitedMaze[currentRow][currentCol] = true
-
-            if (currentRow === state.finishRowIdx && currentCol === state.finishColIdx) {
+            // Array is empty and there are no more cells to search, meaning no path was found
+            if (currentCell === undefined) {
                 state.algorithmStatus = "completed"
                 return
             }
 
-            for (const [offsetX, offsetY] of OFFSETS) {
+            const [currentRow, currentCol, pathSoFar] = currentCell
+
+            state.visitedMaze[currentRow][currentCol] = true
+
+            // Path from start to finish was found
+            if (currentRow === state.finishRowIdx && currentCol === state.finishColIdx) {
+                state.algorithmStatus = "completed"
+                state.validPath = pathSoFar
+                return
+            }
+
+            // Push next possible adjacent cells to the current cell
+            for (const [offsetX, offsetY] of OFFSETS_SIMPLE) {
                 const nextRow = currentRow + offsetX
                 const nextCol = currentCol + offsetY
 
@@ -90,7 +110,7 @@ export const visualizerSlice = createSlice({
                     && !state.visitedMaze[nextRow][nextCol]
                     && state.maze[nextRow][nextCol].state !== "block") {
 
-                    state.queue.push([nextRow, nextCol])
+                    state.array.push([nextRow, nextCol, [...pathSoFar, [nextRow, nextCol]]])
                     state.visitedMaze[nextRow][nextCol] = true
                 }
             }
