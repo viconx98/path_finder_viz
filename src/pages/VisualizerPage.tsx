@@ -26,14 +26,14 @@ const VisualizerPage = () => {
     }, [algorithmStatus])
 
     const startPathFinding = () => {
-        if (algorithmStatus === "stopped") {
-            dispatch(setupAlgorithmLoop())    
-            
-            intervalRef.current = setInterval(() => {
-                console.log("setInterval", algorithmStatus)
-                dispatch(runAlgorithmLoop())
-            })
-        }
+        if (algorithmStatus !== "stopped") return 
+        
+        dispatch(setupAlgorithmLoop())    
+        
+        intervalRef.current = setInterval(() => {
+            console.log("setInterval", algorithmStatus)
+            dispatch(runAlgorithmLoop())
+        })
     }
 
     return <div className="flex flex-col items-center p-8">
@@ -65,6 +65,12 @@ const VisualizerPage = () => {
             </section>
         }
 
+        {
+            algorithmStatus === "completed" && validPath.length === 0 && <p className="py-4 text-red-400 font-semibold">
+                Path from start to finish doesn't exist with current movements
+            </p>
+        }
+
 
         <button onClick={startPathFinding}>BFS</button>
         <button onClick={() => {if (intervalRef.current) clearInterval(intervalRef.current)}}>Clear interval</button>
@@ -84,6 +90,11 @@ export default VisualizerPage
 // TODO: Control to select time between steps
 // TODO: Lock down the user interactions while BFS/DFS is running
 // TODO: Diagonal movements
+// TODO: Random maze that actually looks like maze instead of randomly scattered blocks
+
+// TODO: Check BFS/DFS behaviour
+// - If found, mark the finish right inside the offset loop instead of marking it after pop to stop the DFS from running redundantly 
+// - Check for duplicate pushes 
 
 // TODO: Experiment with async thunks instead of setInterval
 // TODO: Controls or page to change the height and width of the maze

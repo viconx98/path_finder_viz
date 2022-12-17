@@ -27,7 +27,7 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false 
             cell.state === "finish" ? "bg-green-500" : "",
             cell.state === "start" ? "bg-yellow-500" : "",
             isVisited && cell.state !== "start" && cell.state !== "finish" ? "bg-orange-500/50" : "",
-            isPath && cell.state !== "start" && cell.state !== "finish" ? "bg-green-500/70" : ""
+            isPath && cell.state !== "start" && cell.state !== "finish" ? "bg-green-500/50" : ""
         )}>
     </div>
 }

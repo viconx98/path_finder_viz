@@ -16,6 +16,7 @@ interface VisualizerState {
 
     array: [number, number, [number, number][]][]
     validPath: [number, number][]
+    algorithm: "bfs" | "dfs",
     algorithmStatus: "stopped" | "running" | "completed"
 }
 
@@ -34,6 +35,7 @@ const initialState: VisualizerState = {
 
     array: [],
     validPath: [],
+    algorithm: "dfs",
     algorithmStatus: "stopped"
 }
 
@@ -42,7 +44,7 @@ export const visualizerSlice = createSlice({
     initialState,
     reducers: {
         initializeMaze(state, action: PayloadAction<void>) {
-            const [maze, start, finish] = generateMaze(state.mazeWidth, state.mazeHeight, 20, true, false)
+            const [maze, start, finish] = generateMaze(state.mazeWidth, state.mazeHeight, 20, false, false)
             state.maze = maze
             state.visitedMaze = generateVisitedMaze(state.mazeWidth, state.mazeHeight)
 
@@ -82,7 +84,7 @@ export const visualizerSlice = createSlice({
                 return
             }
             
-            const currentCell = state.array.shift()
+            const currentCell = state.algorithm === "bfs" ? state.array.shift() : state.array.pop()
 
             // Array is empty and there are no more cells to search, meaning no path was found
             if (currentCell === undefined) {
@@ -101,7 +103,7 @@ export const visualizerSlice = createSlice({
                 return
             }
 
-            // Push next possible adjacent cells to the current cell
+            // Push next possible adjacent cells into the array
             for (const [offsetX, offsetY] of OFFSETS_SIMPLE) {
                 const nextRow = currentRow + offsetX
                 const nextCol = currentCol + offsetY

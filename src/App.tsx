@@ -11,7 +11,7 @@ function App() {
     <div className={currentTheme === "dark" ? "dark" : "light"}>
       <button className="fixed p-4 bg-gray-500" onClick={() => dispatch(setCurrentTheme(currentTheme === "dark" ? "light" : "dark"))}>Theme</button>
 
-      <main className="w-full h-screen bg-gray-200 dark:bg-zinc-900 text-zinc-900 dark:text-gray-100">
+      <main className="w-full min-h-screen bg-gray-200 dark:bg-zinc-900 text-zinc-900 dark:text-gray-100">
         <VisualizerPage/>
       </main>
     </div>
