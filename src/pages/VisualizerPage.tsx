@@ -2,6 +2,7 @@ import classnames from "classnames"
 import { useEffect, useRef } from "react"
 import Cell from "../components/Cell"
 import Loading from "../components/Loading/Loading"
+import Sidebar from "../components/Sidebar"
 import { useAppDispatch, useAppSelector } from "../hooks/redux"
 import { initializeMaze, runAlgorithmLoop, setupAlgorithmLoop, setVisitedCell, toggleBlockCell } from "../slices/visualizerSlice"
 import { createRowId, generateVisitedMaze, isValidCell } from "../utils"
@@ -26,17 +27,19 @@ const VisualizerPage = () => {
     }, [algorithmStatus])
 
     const startPathFinding = () => {
-        if (algorithmStatus !== "stopped") return 
-        
-        dispatch(setupAlgorithmLoop())    
-        
+        if (algorithmStatus !== "stopped") return
+
+        dispatch(setupAlgorithmLoop())
+
         intervalRef.current = setInterval(() => {
             console.log("setInterval", algorithmStatus)
             dispatch(runAlgorithmLoop())
         })
     }
 
-    return <div className="flex flex-col items-center p-8">
+    return <div className="flex items-center">
+        <Sidebar/>
+
         {
             !isInitializationComplete && <Loading text="Building maze" />
         }
@@ -73,7 +76,9 @@ const VisualizerPage = () => {
 
 
         <button onClick={startPathFinding}>BFS</button>
-        <button onClick={() => {if (intervalRef.current) clearInterval(intervalRef.current)}}>Clear interval</button>
+        <button onClick={() => {
+            if (intervalRef.current) clearInterval(intervalRef.current)
+        }}>Clear interval</button>
     </div>
 }
 
@@ -92,12 +97,14 @@ export default VisualizerPage
 // TODO: Diagonal movements
 // TODO: Random maze that actually looks like maze instead of randomly scattered blocks
 
+// TODO: Figure out why the loops slow down in the dev mode?
 // TODO: Check BFS/DFS behaviour
-// - If found, mark the finish right inside the offset loop instead of marking it after pop to stop the DFS from running redundantly 
-// - Check for duplicate pushes 
+// - If found, mark the finish right inside the offset loop instead of marking it after pop to stop the DFS from running redundantly
+// - Check for duplicate pushes
 
 // TODO: Experiment with async thunks instead of setInterval
 // TODO: Controls or page to change the height and width of the maze
 // TODO: Fancy styles
 // TODO: Explore other algorithms
 // TODO: Explore other movement rules
+// TODO: Maybe animate the valid path

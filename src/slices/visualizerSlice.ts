@@ -1,6 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { generateMaze, generateVisitedMaze, isValidCell, OFFSETS_SIMPLE } from '../utils'
 
+type Controls = {
+    currentSpecialBlock: "startBlock" | "finishBlock"
+    currentAlgorithm: "bfs" | "dfs"
+    currentStepDelay: number
+    randomMazeNoise: number
+}
+
 interface VisualizerState {
     mazeWidth: number
     mazeHeight: number
@@ -13,6 +20,8 @@ interface VisualizerState {
     finishColIdx: number
 
     isInitializationComplete: boolean
+
+    controls: Controls
 
     array: [number, number, [number, number][]][]
     validPath: [number, number][]
@@ -33,11 +42,20 @@ const initialState: VisualizerState = {
 
     isInitializationComplete: false,
 
+    controls: {
+        currentAlgorithm: "bfs",
+        currentSpecialBlock: "startBlock",
+        currentStepDelay: 100,
+        randomMazeNoise: 25
+    },
+
     array: [],
     validPath: [],
-    algorithm: "dfs",
+    algorithm: "bfs",
     algorithmStatus: "stopped"
 }
+
+export const test: any = []
 
 export const visualizerSlice = createSlice({
     name: 'visualizer',
@@ -65,11 +83,33 @@ export const visualizerSlice = createSlice({
 
             state.maze[cellRowIdx][cellColIdx].state = currentCellState === "block" ? "empty" : "block"
         },
+        setStartOrFinishCell(state, action: PayloadAction<[number, number]>) {
+            const cellRowIdx = action.payload[0]
+            const cellColIdx = action.payload[1]
+
+            if (state.controls.currentSpecialBlock === "startBlock") {
+                state.maze[state.startRowIdx][state.startColIdx].state = "empty"
+                state.maze[cellRowIdx][cellColIdx].state = "start"
+
+                state.startRowIdx = cellRowIdx
+                state.startColIdx = cellColIdx
+            } else if (state.controls.currentSpecialBlock === "finishBlock") {
+                state.maze[state.finishRowIdx][state.finishColIdx].state = "empty"
+                state.maze[cellRowIdx][cellColIdx].state = "finish"
+
+                state.finishRowIdx = cellRowIdx
+                state.finishColIdx = cellColIdx
+            }
+        },
+        // TODO: Remove later
         setVisitedCell(state, action: PayloadAction<[number, number]>) {
             const cellRowIdx = action.payload[0]
             const cellColIdx = action.payload[1]
 
             state.visitedMaze[cellRowIdx][cellColIdx] = true
+        },
+        setControls(state, action: PayloadAction<Controls>) {
+            state.controls = action.payload
         },
         setupAlgorithmLoop(state, action: PayloadAction<void>) {
             state.array.push([state.startRowIdx, state.startColIdx, [[state.startRowIdx, state.startColIdx]]])
@@ -83,7 +123,7 @@ export const visualizerSlice = createSlice({
             if (state.algorithmStatus === "completed") {
                 return
             }
-            
+
             const currentCell = state.algorithm === "bfs" ? state.array.shift() : state.array.pop()
 
             // Array is empty and there are no more cells to search, meaning no path was found
@@ -93,7 +133,6 @@ export const visualizerSlice = createSlice({
             }
 
             const [currentRow, currentCol, pathSoFar] = currentCell
-
             state.visitedMaze[currentRow][currentCol] = true
 
             // Path from start to finish was found
@@ -120,6 +159,14 @@ export const visualizerSlice = createSlice({
     }
 })
 
-export const { initializeMaze, toggleBlockCell, setVisitedCell, setupAlgorithmLoop, runAlgorithmLoop } = visualizerSlice.actions
+export const {
+    initializeMaze,
+    toggleBlockCell,
+    setVisitedCell,
+    setupAlgorithmLoop,
+    runAlgorithmLoop,
+    setControls,
+    setStartOrFinishCell
+} = visualizerSlice.actions
 
 export default visualizerSlice.reducer
