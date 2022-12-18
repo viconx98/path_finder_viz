@@ -1,23 +1,41 @@
 import { useAppDispatch, useAppSelector } from "../hooks/redux"
 import { TbHome, TbFlag, TbDice5 } from "react-icons/tb"
 import classNames from "classnames"
-import React, { MouseEventHandler } from "react"
-import { setControls } from "../slices/visualizerSlice"
+import React, { useEffect, useRef } from "react"
+import { initializeMaze, performReset, runAlgorithmLoop, setControls, setIsInitializationComplete, setupAlgorithmLoop } from "../slices/visualizerSlice"
+import Button from "./Button"
+import * as _ from "lodash" 
 
-// TODO: Clean up hard coded stuff
+// TODO: Major refactoring
 const Sidebar = () => {
     const dispatch = useAppDispatch()
-    const { controls, algorithmStatus } = useAppSelector(state => state.visualizer)
+    const { controls, algorithmStatus, shouldDisableControls } = useAppSelector(state => state.visualizer)
+    const intervalRef = useRef<number | null>(null)
+
+    useEffect(() => {
+        if (algorithmStatus === "completed") {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current)
+            }
+        }
+    }, [algorithmStatus])
+
+    const handleRunClick = () => {
+        if (algorithmStatus !== "stopped") return
+
+        dispatch(setupAlgorithmLoop())
+
+        intervalRef.current = setInterval(() => {
+            dispatch(runAlgorithmLoop())
+        }, controls.currentStepDelay)
+    }
+
+    const handleAlgorithmChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        dispatch(setControls({ ...controls, currentAlgorithm: (event.target.value as any) }))
+    }
 
     const handleSpecialBlockChange = (selectedBlock: "startBlock" | "finishBlock") => {
         dispatch(setControls({ ...controls, currentSpecialBlock: selectedBlock }))
-    }
-
-    const handleRandomNoiseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch(setControls({
-            ...controls,
-            randomMazeNoise: event.target.valueAsNumber
-        }))
     }
 
     const handleStepDelayChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,7 +45,44 @@ const Sidebar = () => {
         }))
     }
 
-    return <aside className="w-64 h-screen overflow-y-auto flex flex-col gap-4 p-2 bg-zinc-400 dark:bg-zinc-800 shadow-xl">
+    const handleMazeWidthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setControls({
+            ...controls,
+            currentMazeWidth: event.target.valueAsNumber
+        }))
+    }
+
+    const handleMazeHeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setControls({
+            ...controls,
+            currentMazeHeight: event.target.valueAsNumber
+        }))
+    }
+
+    const handleRandomNoiseChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setControls({
+            ...controls,
+            randomMazeNoise: event.target.valueAsNumber
+        }))
+    }
+
+    const handleRandomMazeClick = () => {
+        dispatch(setIsInitializationComplete(false))
+        dispatch(initializeMaze())
+    }
+
+    const handleResetClick = () => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+        }
+
+        dispatch(setIsInitializationComplete(false))
+        dispatch(performReset())
+    }
+
+
+
+    return <aside className="w-64 min-w-[256px] h-screen overflow-y-auto flex flex-col gap-4 p-2 bg-zinc-400 dark:bg-zinc-800 shadow-xl">
         <div>
             Heading of some sort
         </div>
@@ -71,7 +126,7 @@ const Sidebar = () => {
 
         <div className="rounded-md bg-blue-500/20 p-2">
             <p className="font-semibold mb-4">Algorithm</p>
-            <select name="algorithm" id="algorithm">
+            <select name="algorithm" id="algorithm" defaultValue="bfs" onChange={handleAlgorithmChange}>
                 <option value="bfs">Breadth-First Search (BFS)</option>
                 <option value="dfs">Depth-First Search (DFS)</option>
             </select>
@@ -81,14 +136,14 @@ const Sidebar = () => {
             <p className="font-semibold mb-4">Step Delay - <span className="text-blue-300">{controls.currentStepDelay} (ms)</span></p>
             <div className="flex flex-col items-center">
                 <div className="w-full flex gap-2">
-                    <p>100</p>
+                    <p>0</p>
                     <input
                         className="w-full"
                         type="range"
                         value={controls.currentStepDelay}
                         max={10000}
-                        min={100}
-                        step={100}
+                        min={0}
+                        step={10}
                         onChange={handleStepDelayChange}
                     />
                     <p>10000</p>
@@ -98,8 +153,43 @@ const Sidebar = () => {
         </div>
 
         <div className="rounded-md bg-blue-500/20 p-2">
-            <p className="font-semibold mb-4">Random Maze - <span className="text-blue-300">{controls.randomMazeNoise} (Noise)</span></p>
-            <div className="flex flex-col items-center">
+            <p className="font-semibold mb-4">Random Maze</p>
+            <div className="flex flex-col items-start">
+                <span className="text-blue-300">Width: {controls.currentMazeWidth} </span>
+                <div className="w-full flex gap-2">
+                    <p>10</p>
+                    <input
+                        className="w-full"
+                        type="range"
+                        value={controls.currentMazeWidth}
+                        max={100}
+                        min={10}
+                        step={1}
+                        onChange={handleMazeWidthChange}
+                    />
+                    <p>100</p>
+                </div>
+            </div>
+
+            <div className="flex flex-col items-start">
+                <span className="text-blue-300">Height: {controls.currentMazeHeight} </span>
+                <div className="w-full flex gap-2">
+                    <p>10</p>
+                    <input
+                        className="w-full"
+                        type="range"
+                        value={controls.currentMazeHeight}
+                        max={100}
+                        min={10}
+                        step={1}
+                        onChange={handleMazeHeightChange}
+                    />
+                    <p>100</p>
+                </div>
+            </div>
+
+            <div className="flex flex-col items-start">
+                <span className="text-blue-300">Noise: {controls.randomMazeNoise} </span>
                 <div className="w-full flex gap-2">
                     <p>0</p>
                     <input
@@ -114,19 +204,33 @@ const Sidebar = () => {
                     <p>100</p>
                 </div>
             </div>
+
+
             <p className="text-zinc-400 text-sm">Noise is the approximate percentage of cells that will turn into blocked cells.</p>
-            <button className="w-full flex my-2 justify-center p-1 bg-blue-500 rounded-md">
+            <Button
+                fullWidth
+                onClick={handleRandomMazeClick}
+            >
                 <TbDice5 className="rotate-12 w-6 h-6" />
-            </button>
+            </Button>
         </div>
 
         <div className="mt-auto">
-            <button className="w-full flex my-2 justify-center p-1 bg-blue-500 rounded-md">
-                Run
-            </button>
-            <button className="w-full flex my-2 justify-center p-1 bg-blue-500 rounded-md">
+            <Button
+                fullWidth
+                disabled={algorithmStatus === "running"}
+                onClick={handleRunClick}
+            >
+                {
+                    algorithmStatus === "running" ? "Running" : "Run"
+                }
+            </Button>
+            <Button
+                fullWidth
+                onClick={handleResetClick}
+            >
                 Reset
-            </button>
+            </Button>
         </div>
     </aside>
 }

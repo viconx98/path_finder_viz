@@ -36,8 +36,8 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false 
             cell.state === "block" ? "bg-zinc-500 shadow-[0px_6px_4px_0_#27272a]" : "",
             cell.state === "finish" ? "bg-green-500" : "",
             cell.state === "start" ? "bg-yellow-500" : "",
-            isVisited && cell.state !== "start" && cell.state !== "finish" ? "bg-orange-500/50" : "",
-            isPath && cell.state !== "start" && cell.state !== "finish" ? "bg-green-500/50" : ""
+            (isVisited && cell.state !== "start" && cell.state !== "finish") ? "bg-orange-500/50" : "",
+            (isPath && cell.state !== "start" && cell.state !== "finish") ? "bg-green-500/50 animate-pulse" : ""
         )}>
         {
             cell.state === "start" && <TbHome className="h-5 w-5 text-zinc-900"/>

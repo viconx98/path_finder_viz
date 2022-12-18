@@ -13,8 +13,8 @@ export function generateMaze(
     defaultStart: boolean = true,
     defaultFinish: boolean = true): [CellData[][], [number, number], [number, number]] {
 
-    const maze = new Array(mazeWidth).fill(null).map(e => {
-        return new Array(mazeHeight).fill(null).map(e1 => {
+    const maze = new Array(mazeHeight).fill(null).map(e => {
+        return new Array(mazeWidth).fill(null).map(e1 => {
             const cell: CellData = {
                 id: nanoid(16),
                 state: "empty"
@@ -30,13 +30,13 @@ export function generateMaze(
         })
     })
     // TODO: Handle edge case where the randomly generated start and finish are same
-    const startRowIdx = defaultStart ? 0 : getRandomIntInclusive(0, mazeWidth - 1)
-    const startColIdx = defaultStart ? 0 : getRandomIntInclusive(0, mazeHeight - 1)
+    const startRowIdx = defaultStart ? 0 : getRandomIntInclusive(0, mazeHeight - 1)
+    const startColIdx = defaultStart ? 0 : getRandomIntInclusive(0, mazeWidth - 1)
 
     maze[startRowIdx][startColIdx].state = "start"
 
-    const finishRowIdx = defaultFinish ? mazeWidth - 1 : getRandomIntInclusive(0, mazeWidth - 1)
-    const finishColIdx = defaultFinish ? mazeHeight - 1 : getRandomIntInclusive(0, mazeHeight - 1)
+    const finishRowIdx = defaultFinish ? mazeWidth - 1 : getRandomIntInclusive(0, mazeHeight - 1)
+    const finishColIdx = defaultFinish ? mazeHeight - 1 : getRandomIntInclusive(0, mazeWidth - 1)
 
     maze[finishRowIdx][finishColIdx].state = "finish"
 
@@ -44,8 +44,8 @@ export function generateMaze(
 }
 
 export function generateVisitedMaze(mazeWidth: number, mazeHeight: number) {
-    const visitedMaze = new Array(mazeWidth).fill(null).map(e => {
-        return new Array(mazeHeight).fill(false)
+    const visitedMaze = new Array(mazeHeight).fill(null).map(e => {
+        return new Array(mazeWidth).fill(false)
     })
 
     return visitedMaze as boolean[][]
@@ -58,8 +58,8 @@ export function createRowId(cells: CellData[]) {
 
 // TODO: Maybe also check visited here for clarity
 export function isValidCell(mazeWidth: number, mazeHeight: number, cellRowIdx: number, cellColIdx: number) {
-    if (cellRowIdx < 0 || cellRowIdx >= mazeWidth) return false
-    if (cellColIdx < 0 || cellColIdx >= mazeHeight) return false
+    if (cellRowIdx < 0 || cellRowIdx >= mazeHeight) return false
+    if (cellColIdx < 0 || cellColIdx >= mazeWidth) return false
 
     return true
 }
