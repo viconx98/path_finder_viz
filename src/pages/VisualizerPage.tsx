@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import Cell from "../components/Cell"
+import Cell from "../components/Cell/Cell"
 import Loading from "../components/Loading/Loading"
 import Sidebar from "../components/Sidebar"
 import { useAppDispatch, useAppSelector } from "../hooks/redux"
@@ -9,15 +9,45 @@ import { createRowId } from "../utils"
 const VisualizerPage = () => {
     const dispatch = useAppDispatch()
     const { maze, visitedMaze, isInitializationComplete, algorithmStatus, validPath } = useAppSelector(state => state.visualizer)
+    const { controls, array, totalStepDuration, averageStepDuration, stepCount } = useAppSelector(state => state.visualizer)
 
     useEffect(() => {
         setTimeout(() => dispatch(initializeMaze()))
     }, [])
 
+    const checkIsPath = (path: [number, number][], cellRowIdx: number, cellColIdx: number) => {
+        if (!path.length) return [false, -1] as [boolean, number]
+        
+        let pathIdx = -1
+        let isPath = false
+
+        for (let index = 0; index < path.length; index++) {
+            const coord = path[index];
+            if (coord[0] === cellRowIdx && coord[1] === cellColIdx) {
+                pathIdx = index
+                isPath = true
+                break
+            }
+        }
+
+        console.log([isPath, pathIdx])
+        return [isPath, pathIdx] as [boolean, number]
+    }
+
     return <div className="flex items-center">
         <Sidebar />
 
-        <section className="flex-1 flex flex-col justify-center items-center">
+        <section className="relative flex-1 h-screen flex flex-col justify-center items-center">
+                {
+                    controls.showDebugView && <div className="absolute top-0 left-0 w-52 h-52 p-2 m-2 rounded-md bg-blue-500/50">
+                        <p>Debug View</p>
+                        <p>Array Length: {array.length}</p>
+                        <p>Step Count: {stepCount}</p>
+                        <p>Total Step Duration: {totalStepDuration}</p>
+                        <p>Avg. Step Duration: {averageStepDuration}</p>
+                    </div>
+                }
+
                 {
                     !isInitializationComplete && <Loading text="Building maze" />
                 }
@@ -36,7 +66,7 @@ const VisualizerPage = () => {
                                             cellRowIdx={rowIdx}
                                             cellColIdx={colIdx}
                                             isVisited={visitedMaze[rowIdx][colIdx]}
-                                            isPath={validPath.some(coord => coord[0] === rowIdx && coord[1] === colIdx)}
+                                            path={checkIsPath(validPath, rowIdx, colIdx)}
                                         />)
                                     }
                                 </div>)
@@ -58,7 +88,7 @@ export default VisualizerPage
 
 // TODO: Lock down the user interactions while BFS/DFS is running
 // TODO: Diagonal movements
-// TODO: Random maze that actually looks like maze instead of randomly scattered blocks
+// TODO: Continuous cell toggle
 
 // TODO: Optimize visited array
 // TODO: Optimize isPath search
@@ -67,6 +97,7 @@ export default VisualizerPage
 // - If found, mark the finish right inside the offset loop instead of marking it after pop to stop the DFS from running redundantly
 // - Check for duplicate pushes
 
+// TODO: Random maze that actually looks like maze instead of randomly scattered blocks
 // TODO: Experiment with async thunks instead of setInterval
 // TODO: Controls or page to change the height and width of the maze
 // TODO: Fancy styles

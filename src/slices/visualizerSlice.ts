@@ -8,12 +8,11 @@ type Controls = {
     currentAlgorithm: "bfs" | "dfs"
     currentStepDelay: number
     randomMazeNoise: number
+    showDebugView: boolean
 }
 
 interface VisualizerState {
     // Maze related state
-    // mazeWidth: number
-    // mazeHeight: number
     maze: Array<Array<CellData>>
     visitedMaze: boolean[][]
     startRowIdx: number
@@ -25,11 +24,15 @@ interface VisualizerState {
     isInitializationComplete: boolean
     shouldDisableControls: boolean
     controls: Controls
-    
+
     // Algorithm related state
     array: [number, number, [number, number][]][]
     validPath: [number, number][]
     algorithmStatus: "stopped" | "running" | "completed"
+
+    totalStepDuration: number
+    averageStepDuration: number
+    stepCount: number
 }
 
 const initialState: VisualizerState = {
@@ -50,12 +53,17 @@ const initialState: VisualizerState = {
         currentAlgorithm: "bfs",
         currentSpecialBlock: "startBlock",
         currentStepDelay: 100,
-        randomMazeNoise: 35
+        randomMazeNoise: 35,
+        showDebugView: false
     },
 
     array: [],
     validPath: [],
-    algorithmStatus: "stopped"
+    algorithmStatus: "stopped",
+
+    totalStepDuration: 0,
+    averageStepDuration: -1,
+    stepCount: 0
 }
 
 export const test: any = []
@@ -75,9 +83,13 @@ export const visualizerSlice = createSlice({
             state.finishColIdx = finish[1]
 
             state.isInitializationComplete = true
+            state.shouldDisableControls = false
         },
         setIsInitializationComplete(state, action: PayloadAction<boolean>) {
             state.isInitializationComplete = action.payload
+        },
+        setShouldDisableControls(state, action: PayloadAction<boolean>) {
+            state.shouldDisableControls = action.payload
         },
         toggleBlockCell(state, action: PayloadAction<[number, number]>) {
             const cellRowIdx = action.payload[0]
@@ -112,19 +124,33 @@ export const visualizerSlice = createSlice({
             state.visitedMaze[state.startRowIdx][state.startColIdx] = true
 
             state.algorithmStatus = "running"
+            state.shouldDisableControls = true
         },
         runAlgorithmLoop(state, action: PayloadAction<void>) {
+            const startTime = performance.now()
             // Guard statement to prevent redundant actions from setInterval
             // TODO: Refactor so this statement is not required
             if (state.algorithmStatus === "completed") {
+                state.stepCount++
+                const endTime = performance.now()
+                state.totalStepDuration += (endTime - startTime)
+                state.averageStepDuration = state.totalStepDuration / state.stepCount
+                
+                state.shouldDisableControls = false
                 return
             }
-
+            
             const currentCell = state.controls.currentAlgorithm === "bfs" ? state.array.shift() : state.array.pop()
-
+            
             // Array is empty and there are no more cells to search, meaning no path was found
             if (currentCell === undefined) {
                 state.algorithmStatus = "completed"
+                state.stepCount++
+                const endTime = performance.now()
+                state.totalStepDuration += (endTime - startTime)
+                state.averageStepDuration = state.totalStepDuration / state.stepCount
+                
+                state.shouldDisableControls = false
                 return
             }
 
@@ -135,6 +161,12 @@ export const visualizerSlice = createSlice({
             if (currentRow === state.finishRowIdx && currentCol === state.finishColIdx) {
                 state.algorithmStatus = "completed"
                 state.validPath = pathSoFar
+                state.stepCount++
+                const endTime = performance.now()
+                state.totalStepDuration += (endTime - startTime)
+                state.averageStepDuration = state.totalStepDuration / state.stepCount
+                
+                state.shouldDisableControls = true
                 return
             }
 
@@ -151,14 +183,23 @@ export const visualizerSlice = createSlice({
                     state.visitedMaze[nextRow][nextCol] = true
                 }
             }
+            state.stepCount++
+            const endTime = performance.now()
+            state.totalStepDuration += (endTime - startTime)
+            state.averageStepDuration = state.totalStepDuration / state.stepCount
         },
         performReset(state, action: PayloadAction<void>) {
             state.array = []
             state.validPath = []
             state.algorithmStatus = "stopped"
             state.visitedMaze = generateVisitedMaze(state.controls.currentMazeWidth, state.controls.currentMazeHeight)
-            
+
+            state.stepCount = 0
+            state.totalStepDuration = 0
+            state.averageStepDuration = 0
+
             state.isInitializationComplete = true
+            state.shouldDisableControls = false
         }
     }
 })
@@ -171,7 +212,8 @@ export const {
     setControls,
     setStartOrFinishCell,
     performReset,
-    setIsInitializationComplete
+    setIsInitializationComplete,
+    setShouldDisableControls
 } = visualizerSlice.actions
 
 export default visualizerSlice.reducer

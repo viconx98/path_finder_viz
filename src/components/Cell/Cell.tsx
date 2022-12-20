@@ -1,7 +1,8 @@
+import "./Cell.css"
 import classnames from "classnames"
 import React from "react"
-import { useAppDispatch } from "../hooks/redux"
-import { setStartOrFinishCell, toggleBlockCell } from "../slices/visualizerSlice"
+import { useAppDispatch } from "../../hooks/redux"
+import { setStartOrFinishCell, toggleBlockCell } from "../../slices/visualizerSlice"
 import { TbHome, TbFlag } from "react-icons/tb"
 
 type CellProps = {
@@ -9,10 +10,10 @@ type CellProps = {
     cellRowIdx: number
     cellColIdx: number
     isVisited?: boolean
-    isPath?: boolean
+    path?: [boolean, number]
 }
 
-const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false }: CellProps) => {
+const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, path = [false, -1] }: CellProps) => {
     const dispatch = useAppDispatch()
 
     const handleCellLeftClick = () => {
@@ -37,8 +38,12 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false 
             cell.state === "finish" ? "bg-green-500" : "",
             cell.state === "start" ? "bg-yellow-500" : "",
             (isVisited && cell.state !== "start" && cell.state !== "finish") ? "bg-orange-500/50" : "",
-            (isPath && cell.state !== "start" && cell.state !== "finish") ? "bg-green-500/50 animate-pulse" : ""
-        )}>
+            (path[0] && cell.state !== "start" && cell.state !== "finish") ? "bg-green-500/50 path" : ""
+        )}
+        style={{
+            animationDelay: (path[1] * 100).toString() + "ms"
+        }}
+        >
         {
             cell.state === "start" && <TbHome className="h-5 w-5 text-zinc-900"/>
         }
@@ -49,3 +54,4 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, isPath = false 
 }
 
 export default Cell
+/* {cellRowIdx * 30 + cellColIdx} */
