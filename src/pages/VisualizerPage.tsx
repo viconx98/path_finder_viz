@@ -86,7 +86,6 @@ const VisualizerPage = () => {
 
 export default VisualizerPage
 
-// TODO: Lock down the user interactions while BFS/DFS is running
 // TODO: Diagonal movements
 // TODO: Continuous cell toggle
 
@@ -103,4 +102,3 @@ export default VisualizerPage
 // TODO: Fancy styles
 // TODO: Explore other algorithms
 // TODO: Explore other movement rules
-// TODO: Maybe animate the valid path

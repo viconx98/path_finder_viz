@@ -1,7 +1,7 @@
 import "./Cell.css"
 import classnames from "classnames"
 import React from "react"
-import { useAppDispatch } from "../../hooks/redux"
+import { useAppDispatch, useAppSelector } from "../../hooks/redux"
 import { setStartOrFinishCell, toggleBlockCell } from "../../slices/visualizerSlice"
 import { TbHome, TbFlag } from "react-icons/tb"
 
@@ -15,20 +15,23 @@ type CellProps = {
 
 const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, path = [false, -1] }: CellProps) => {
     const dispatch = useAppDispatch()
+    const { shouldDisableControls } = useAppSelector(state => state.visualizer)
 
     const handleCellLeftClick = () => {
         if (cell.state === "start" || cell.state === "finish") return
-
+        if (shouldDisableControls) return
+        
         dispatch(toggleBlockCell([cellRowIdx, cellColIdx]))
     }
-
+    
     const handleCellRightClick = (event: React.MouseEvent) => {
         if (cell.state === "start" || cell.state === "finish") return
+        if (shouldDisableControls) return
 
         dispatch(setStartOrFinishCell([cellRowIdx, cellColIdx]))
         event.preventDefault()
     }
-    
+
     return <div
         onClick={handleCellLeftClick}
         onContextMenu={handleCellRightClick}
@@ -43,12 +46,12 @@ const Cell = ({ cell, cellRowIdx, cellColIdx, isVisited = false, path = [false, 
         style={{
             animationDelay: (path[1] * 100).toString() + "ms"
         }}
-        >
+    >
         {
-            cell.state === "start" && <TbHome className="h-5 w-5 text-zinc-900"/>
+            cell.state === "start" && <TbHome className="h-5 w-5 text-zinc-900" />
         }
         {
-            cell.state === "finish" && <TbFlag className="h-5 w-5 text-zinc-900"/>
+            cell.state === "finish" && <TbFlag className="h-5 w-5 text-zinc-900" />
         }
     </div>
 }
